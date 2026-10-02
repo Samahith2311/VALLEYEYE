@@ -1,0 +1,13 @@
+# Data Sources
+
+External endpoints and collections used by the implementation are listed here. `verified_on` records the date the official documentation was checked.
+
+| Source | URL / identifier | Licence | Access | Why allowed / status |
+|---|---|---|---|---|
+| Copernicus Data Space Ecosystem STAC | `https://stac.dataspace.copernicus.eu/v1/` | Copernicus Sentinel Data Legal Notice | Public STAC item search; product download may require CDSE credentials | Sentinel catalogue source named in the supplied hackathon requirements. Endpoint verified 2026-10-02 against the [CDSE STAC documentation](https://documentation.dataspace.copernicus.eu/APIs/STAC.html). |
+| Sentinel-1 GRD | CDSE collection `sentinel-1-grd` | [Copernicus Sentinel Data Legal Notice](https://sentinels.copernicus.eu/documents/247904/690755/Sentinel_Data_Legal_Notice) | CDSE STAC search; authenticated product download | Primary radar source required by the supplied requirements. Collection is listed in the [CDSE collection documentation](https://documentation.dataspace.copernicus.eu/APIs/STAC.html). Verified 2026-10-02. |
+| Sentinel-2 L2A | CDSE collection `sentinel-2-l2a` | [Copernicus Sentinel Data Legal Notice](https://sentinels.copernicus.eu/documents/247904/690755/Sentinel_Data_Legal_Notice) | CDSE STAC search; optional use only | Optical source named in the supplied requirements. Collection is listed in the [CDSE collection documentation](https://documentation.dataspace.copernicus.eu/APIs/STAC.html). Verified 2026-10-02. |
+| CDSE identity service | `https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token` | CDSE service terms | HTTPS form POST using server-side environment credentials | Official token flow endpoint, `cdse-public` client ID and password grant are documented by [CDSE](https://documentation.dataspace.copernicus.eu/APIs/Token.html). Verified 2026-10-02. |
+| Kuro Siwo model repository (candidate, not integrated) | [Orion-AI-Lab/KuroSiwo](https://github.com/Orion-AI-Lab/KuroSiwo) | Repository `LICENSE` is MIT; README says dataset is CC BY. The hosted checkpoint artifacts have no separate license statement located. | Repository README links public Dropbox artifacts. FloodViT response reported 822,312,543 bytes; SNUNet response reported 144,657,509 bytes on 2026-10-02. | The master prompt names Kuro Siwo baselines as Phase 2's model starting point. Model artifact license, input specification and SHA-256 remain unverified; no weights were downloaded or used. |
+
+No Sentinel data has been downloaded in Phase 1. OSM snapshot sourcing, model weights, and all other external datasets are not yet integrated; their use must be verified and recorded before implementation.
