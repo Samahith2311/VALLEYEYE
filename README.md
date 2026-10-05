@@ -33,6 +33,8 @@ SNAP GPT is required for real Sentinel-1 GRD products. Set `VALLEYEYE_SNAP_GPT_P
 
 The model expects aligned pre/post rasters with VV/VH sigma0 in linear units plus shared `slope_riserun`. Inference uses 224-pixel tiles with 32-pixel context overlap, streams windows, writes float32 flood probabilities and uint8 masks, and excludes nodata pixels. `flood.geojson` includes per-polygon probability statistics. `debris_candidate.geojson` contains only evidence-backed backscatter-change candidates and never claims confirmed debris. The checkpoint hash, inputs, and class mapping are in [`docs/MODEL_CARD.md`](docs/MODEL_CARD.md), `docs/DATA_SOURCES.md`, and `THIRD_PARTY_NOTICES.md`.
 
+Historical OSM extraction uses the documented ohsome API v2 and requires a HeiGIT API key in `OHSOME_API_KEY`. Requests select the final UTC second before the event date; there is no current-OSM fallback. See `docs/ROAD_IMPACT_RULES.md` for exposure and connectivity policy.
+
 ## Test and lint
 
 ```powershell
@@ -81,9 +83,22 @@ Tests use mocked HTTP and block socket connections so they do not access live se
 | `VALLEYEYE_MINIMUM_FLOOD_POLYGON_AREA_KM2` | Minimum mapped flood polygon size | `0.001` |
 | `VALLEYEYE_CANDIDATE_BACKSCATTER_CHANGE_THRESHOLD_DB` | VV-change threshold for candidate mapping | `3.0` |
 | `VALLEYEYE_MINIMUM_CANDIDATE_POLYGON_AREA_KM2` | Minimum candidate polygon size | `0.001` |
+| `OHSOME_API_KEY` | HeiGIT key for historical OSM extraction | unset |
+| `VALLEYEYE_OHSOME_API_URL` | ohsome API v2 endpoint | documented endpoint |
+| `VALLEYEYE_OHSOME_TIMEOUT_SECONDS` | Historical extraction timeout | `240` |
+| `VALLEYEYE_OSM_AOI_BUFFER_M` | Metric buffer for OSM roads around the AOI | `5000` |
+| `VALLEYEYE_BUILDING_AFFECTED_FRACTION_THRESHOLD` | Minimum footprint overlap to count a building as affected | `0.1` |
+| `VALLEYEYE_ROAD_POTENTIALLY_BLOCKED_FRACTION` | Minimum flood-overlap fraction for a potential road block | `0.01` |
+| `VALLEYEYE_ROAD_BLOCKED_FRACTION` | Flood-overlap fraction for a blocked road | `0.5` |
+| `VALLEYEYE_BRIDGE_HAZARD_BUFFER_M` | Bridge corridor buffer around flood geometry | `20` |
+| `VALLEYEYE_BRIDGE_BLOCK_ON_INTERSECTION` | Block a bridge for any buffered flood intersection | `true` |
+| `VALLEYEYE_NETWORK_MAX_SNAP_DISTANCE_M` | Maximum settlement/source snap distance to the road graph | `500` |
+| `VALLEYEYE_NETWORK_DETOUR_RATIO_THRESHOLD` | Distance or travel-time ratio that marks a detour | `1.25` |
+| `VALLEYEYE_REMOVE_POTENTIALLY_BLOCKED_EDGES` | Use strict rather than optimistic connectivity policy | `false` |
+| `VALLEYEYE_ROAD_SPEED_DEFAULTS_KMH` | JSON highway-class speeds used when OSM maxspeed is absent | configured defaults |
 
 CDSE credentials are only used by the server-side token client and are never included in responses or logs. See [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) for sources and verification dates.
 
 ## Architecture
 
-`src/valleyeye/api` contains the FastAPI boundary, `core` holds shared settings, geometry checks and errors, `cdse` handles authentication, STAC discovery and scene pairing, `sar` provides SNAP/raster tools, `ml` verifies and runs SNUNet, and `hazard` exports flood and debris-candidate vectors. OSM/network, orchestration and reporting are later phases. The phase checkpoints and limitations are recorded under `docs/`.
+`src/valleyeye/api` contains the FastAPI boundary, `core` holds shared settings, geometry checks and errors, `cdse` handles authentication, STAC discovery and scene pairing, `sar` provides SNAP/raster tools, `ml` verifies and runs SNUNet, `hazard` exports flood and debris-candidate vectors, `osm` extracts historical OSM, `infra` measures exposure, and `network` analyzes road access. Job orchestration and reporting remain later phases. The phase checkpoints and limitations are recorded under `docs/`.

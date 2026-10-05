@@ -27,6 +27,10 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("CDSE_TOTP", "VALLEYEYE_CDSE_TOTP"),
     )
+    ohsome_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("OHSOME_API_KEY", "VALLEYEYE_OHSOME_API_KEY"),
+    )
     cdse_identity_url: str = (
         "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
     )
@@ -34,6 +38,9 @@ class Settings(BaseSettings):
     stac_api_url: str = "https://stac.dataspace.copernicus.eu/v1"
     s1_collection: str = "sentinel-1-grd"
     s2_collection: str = "sentinel-2-l2a"
+    ohsome_api_url: str = "https://api.heigit.org/ohsome-api/v2-rc"
+    ohsome_timeout_seconds: float = 240.0
+    osm_aoi_buffer_m: float = 5000.0
     http_timeout_seconds: float = 30.0
     retry_max_attempts: int = 4
     token_refresh_skew_seconds: int = 60
@@ -60,12 +67,33 @@ class Settings(BaseSettings):
     minimum_flood_polygon_area_km2: float = 0.001
     candidate_backscatter_change_threshold_db: float = 3.0
     minimum_candidate_polygon_area_km2: float = 0.001
+    building_affected_fraction_threshold: float = 0.1
+    road_potentially_blocked_fraction: float = 0.01
+    road_blocked_fraction: float = 0.5
+    bridge_hazard_buffer_m: float = 20.0
+    bridge_block_on_intersection: bool = True
+    network_max_snap_distance_m: float = 500.0
+    network_detour_ratio_threshold: float = 1.25
+    remove_potentially_blocked_edges: bool = False
+    road_speed_defaults_kmh: dict[str, float] = Field(
+        default_factory=lambda: {
+            "motorway": 90.0,
+            "trunk": 70.0,
+            "primary": 60.0,
+            "secondary": 50.0,
+            "tertiary": 40.0,
+            "unclassified": 30.0,
+            "residential": 30.0,
+            "service": 20.0,
+            "track": 15.0,
+        }
+    )
 
     @model_validator(mode="after")
     def validate_settings(self) -> Settings:
         if bool(self.cdse_username) != bool(self.cdse_password):
             raise ValueError("CDSE_USERNAME and CDSE_PASSWORD must be set together")
-        for field_name in ("cdse_identity_url", "stac_api_url"):
+        for field_name in ("cdse_identity_url", "stac_api_url", "ohsome_api_url"):
             parsed = urlparse(getattr(self, field_name))
             if parsed.scheme != "https" or not parsed.netloc:
                 raise ValueError(f"{field_name} must be an HTTPS URL")
@@ -106,11 +134,28 @@ class Settings(BaseSettings):
             raise ValueError("Minimum polygon areas must be non-negative")
         if self.candidate_backscatter_change_threshold_db <= 0:
             raise ValueError("Candidate backscatter-change threshold must be positive")
+        if self.ohsome_timeout_seconds <= 0 or self.osm_aoi_buffer_m < 0:
+            raise ValueError("ohsome timeout must be positive and OSM buffer non-negative")
+        if not 0 <= self.building_affected_fraction_threshold <= 1:
+            raise ValueError("Building affected fraction threshold must be in [0, 1]")
+        if not 0 <= self.road_potentially_blocked_fraction < self.road_blocked_fraction <= 1:
+            raise ValueError("Road impact fractions must satisfy 0 <= potential < blocked <= 1")
+        if self.bridge_hazard_buffer_m < 0 or self.network_max_snap_distance_m <= 0:
+            raise ValueError(
+                "Bridge buffer must be non-negative and network snap distance positive"
+            )
+        if self.network_detour_ratio_threshold < 1:
+            raise ValueError("Network detour ratio threshold must be at least one")
+        if not self.road_speed_defaults_kmh or any(
+            speed <= 0 for speed in self.road_speed_defaults_kmh.values()
+        ):
+            raise ValueError("Road default speeds must be positive")
         return self
 
     def public_config(self) -> dict[str, object]:
         values = self.model_dump(
-            mode="json", exclude={"cdse_username", "cdse_password", "cdse_totp"}
+            mode="json",
+            exclude={"cdse_username", "cdse_password", "cdse_totp", "ohsome_api_key"},
         )
         values["cdse_username_configured"] = self.cdse_username is not None
         return values

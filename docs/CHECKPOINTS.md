@@ -27,3 +27,17 @@ Assumptions: [A4](ASSUMPTIONS.md#a4--kuro-siwo-checkpoint-channel-contract), [A5
 Known gaps:
 - Live CDSE product download, real SNAP execution, OSM, network connectivity, job orchestration and reports remain for later phases.
 - Debris layers are uncalibrated backscatter-change candidates only; contiguous polygon features may be split at processing-window boundaries.
+
+## Phase 3 — GIS and connectivity engine — 2026-10-05
+Built:
+- Added a documented ohsome API v2 historical OSM provider with strict pre-event snapshots, API-key redaction, buffered WGS84 query, Parquet/WKB normalization, geometry repair, and response/query hashes.
+- Added indexed building and bridge exposure, flood-boundary road splitting, configurable `OPEN`/`POTENTIALLY_BLOCKED`/`BLOCKED`/`UNKNOWN_COVERAGE` classification, and metric-area summaries.
+- Added directed before/after road graphs, one-way and maxspeed handling, nearest node/edge snapping, multi-source travel-time routing, distance/time detour classification, cutoff identification, and blocking-road lineage.
+- Documented data provenance, ODbL attribution, assumptions, network policies, and all new settings.
+
+Tests: 52 passed / 0 failed / 0 skipped; `uv run pytest -q --cov=valleyeye --cov-report=term-missing` (85% coverage). E2E: 2 passed / 0 failed / 50 deselected; `uv run pytest -q -m e2e`. `uv run ruff check .`, `uv run mypy src/valleyeye`, `uv lock --check`, and `uv run ruff format --check .` passed. All OSM tests use mocked Parquet responses; the suite blocks live network access.
+Not verified: no HeiGIT ohsome API key was available, so no live historical OSM extract was requested. Spatial and network behavior was verified on synthetic geometries only; no field-validated travel-speed or damage thresholds were used.
+Assumptions: [A7](ASSUMPTIONS.md#a7--historical-osm-provider-and-snapshot-instant), [A8](ASSUMPTIONS.md#a8--osm-network-buffer-and-access-sources), [A9](ASSUMPTIONS.md#a9--exposure-and-network-defaults).
+Known gaps:
+- OSM, exposure and connectivity modules are not yet connected to a job pipeline; the caller must provide the flood-valid coverage geometry or roads remain `UNKNOWN_COVERAGE`.
+- A live API key and validation of data/service terms and quotas are required before operational use.

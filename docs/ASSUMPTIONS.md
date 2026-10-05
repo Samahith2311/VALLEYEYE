@@ -23,3 +23,15 @@ The user supplied the complete MIT notice for Orion Lab, matching the Kuro Siwo 
 ## A6 — Processing toolchain and terrain source
 
 SNAP GPT is the selected GRD processing toolchain because the official Kuro Siwo repository includes a SNAP graph with orbit, noise, calibration, speckle-filter, and terrain-correction operators. SRTM 1 arc-second HGT is used for terrain correction and slope; its tiles are auto-downloaded by SNAP. Processing is configured to use a local GPT executable and requires network access for uncached orbit/DEM auxiliaries. This environment does not have SNAP installed, so only graph generation and synthetic raster paths are verified here.
+
+## A7 — Historical OSM provider and snapshot instant
+
+The ohsome API v2 feature-extraction endpoint is used because its official documentation supports point-in-time OSM snapshots and feature geometries. It requires a HeiGIT API key; without one, extraction fails with `OSM_UNAVAILABLE` and no current-data fallback is attempted. For an event date, the selected snapshot is 23:59:59 UTC on the previous calendar day, guaranteeing `snapshot_date < event_date`. This instant and the API's actual historical availability should be checked before production use. OSM-derived outputs must retain ODbL attribution.
+
+## A8 — OSM network buffer and access sources
+
+The OSM request expands the AOI by 5 km in a local metric CRS so border settlements can route to nearby destinations outside the exact impact polygon. Hospitals/clinics and settlements tagged `place=town` or `place=city` are network destinations. These choices are configurable in code/config but have not been validated against a specific response team's service-area policy; omitted or incomplete OSM tags affect the results.
+
+## A9 — Exposure and network defaults
+
+Building overlap `0.10`, road potential/blocked overlap `0.01`/`0.50`, 20 m bridge corridor, 500 m snapping limit, 1.25 detour ratio, and highway-class speed defaults are transparent operational defaults. They are not calibrated against observed flood damage or travel-time data. The default post-event network is optimistic about `POTENTIALLY_BLOCKED` roads but removes `UNKNOWN_COVERAGE`; a strict policy can remove potential segments too. A lack of valid hazard coverage is never interpreted as an open road.

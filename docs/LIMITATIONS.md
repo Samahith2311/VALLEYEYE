@@ -1,9 +1,12 @@
 # Limitations
 
-- Sentinel-1 pair discovery and Phase 2 raster/model primitives are implemented, but live CDSE product download, SNAP execution on a real SAFE product, OSM, network connectivity, job persistence and reports are not yet integrated.
+- Sentinel-1 pair discovery, raster/model primitives, historical OSM extraction, infrastructure exposure and network-connectivity functions are implemented. They are not yet integrated into a job pipeline; live CDSE/ohsome downloads, SNAP on a real SAFE product, job persistence and reports remain unverified or unimplemented.
 - The supplied requirements mention an interactive web application, while the master build prompt requires a backend-only product. The implementation follows backend-only scope; see `ASSUMPTIONS.md`.
 - The SNUNet artifact is not versioned and does not embed input metadata. Its SHA-256 and architecture load are verifiable; the three-channel input meaning is inferred from the Kuro Siwo wrapper reference and recorded in assumption A4. Validate it against a held-out allowed dataset before operational use.
 - SNAP GPT and a live Sentinel-1 scene were unavailable in this environment; terrain-correction graph execution and SAR output band naming have not been live-verified. Synthetic raster inference does not establish flood-detection accuracy.
 - Phase 2 does not enable Sentinel-2 refinement. Debris/sediment polygons are backscatter-change candidates only, not confirmed debris.
 - Flood and candidate GeoJSON polygonization is streamed in 512-pixel windows. A contiguous feature crossing a window boundary is emitted as adjacent polygon fragments; the corresponding rasters remain authoritative. Candidate confidence bins are an uncalibrated heuristic, not statistical confidence.
 - Phase 1 can search the public STAC catalogue without account credentials. Token-protected product downloads require valid CDSE credentials in the server environment.
+- Live OSM extraction requires a free HeiGIT ohsome API key, and extraction quotas/availability are external service dependencies. No OSM response has been downloaded in this environment.
+- Connectivity uses configured destination tags and a time-optimal route; its detour classification compares distance and travel-time ratios against defaults, not a calibrated response-time model. Graph topology follows OSM way vertices and does not infer grade-separated crossings absent from OSM tags.
+- Road segments lacking a coverage polygon are labeled `UNKNOWN_COVERAGE` and removed from the default post-event graph. The Phase 4 pipeline must construct valid coverage from raster masks before these results are operationally useful.
