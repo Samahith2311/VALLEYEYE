@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import subprocess
 import tempfile
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from threading import Event
 
 from pyproj import CRS
 from shapely.geometry.base import BaseGeometry
@@ -162,7 +164,14 @@ def run_snap_preprocessing(
     gpt_path: Path,
     pixel_spacing_m: float = 10.0,
     aoi_buffer_m: float = 500.0,
+    cancel_event: Event | None = None,
 ) -> tuple[str, ...]:
+    if cancel_event is not None and cancel_event.is_set():
+        raise ValleyeyeError(
+            ErrorCode.JOB_CANCELLED,
+            "SNAP processing was cancelled.",
+            stage="PREPROCESSING",
+        )
     graph = build_snap_graph(
         source_product, output_path, aoi_wgs84, target_crs, pixel_spacing_m, aoi_buffer_m
     )
@@ -177,13 +186,40 @@ def run_snap_preprocessing(
     try:
         with tempfile.TemporaryDirectory(prefix="valleyeye-snap-") as temp_dir:
             graph_path = Path(temp_dir) / "graph.xml"
+            stdout_path = Path(temp_dir) / "stdout.log"
+            stderr_path = Path(temp_dir) / "stderr.log"
             graph_path.write_text(graph, encoding="utf-8")
-            subprocess.run(
-                [str(gpt_path), str(graph_path)],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+            with (
+                stdout_path.open("w", encoding="utf-8") as stdout,
+                stderr_path.open("w", encoding="utf-8") as stderr,
+            ):
+                process = subprocess.Popen(
+                    [str(gpt_path), str(graph_path)],
+                    stdout=stdout,
+                    stderr=stderr,
+                    text=True,
+                )
+                while process.poll() is None:
+                    if cancel_event is not None and cancel_event.is_set():
+                        process.terminate()
+                        try:
+                            process.wait(timeout=3)
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                            process.wait()
+                        raise ValleyeyeError(
+                            ErrorCode.JOB_CANCELLED,
+                            "SNAP processing was cancelled.",
+                            stage="PREPROCESSING",
+                        )
+                    time.sleep(0.2)
+                return_code = process.returncode
+            if return_code:
+                raise subprocess.CalledProcessError(
+                    return_code,
+                    [str(gpt_path), str(graph_path)],
+                    stderr=stderr_path.read_text(encoding="utf-8", errors="replace")[-2000:],
+                )
     except (OSError, subprocess.CalledProcessError) as exc:
         message = "SNAP Sentinel-1 GRD preprocessing failed."
         details: dict[str, object] = {}

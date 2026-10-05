@@ -88,6 +88,11 @@ class Settings(BaseSettings):
             "track": 15.0,
         }
     )
+    job_data_dir: Path = Path("data/jobs")
+    stage_cache_dir: Path = Path("data/cache")
+    max_concurrent_jobs: int = 2
+    max_queued_jobs: int = 50
+    stage_cache_ttl_seconds: int = 86400
 
     @model_validator(mode="after")
     def validate_settings(self) -> Settings:
@@ -150,6 +155,10 @@ class Settings(BaseSettings):
             speed <= 0 for speed in self.road_speed_defaults_kmh.values()
         ):
             raise ValueError("Road default speeds must be positive")
+        if self.max_concurrent_jobs < 1 or self.max_queued_jobs < 1:
+            raise ValueError("Job concurrency and queue limits must be positive")
+        if self.stage_cache_ttl_seconds < 0:
+            raise ValueError("Stage cache TTL must be non-negative")
         return self
 
     def public_config(self) -> dict[str, object]:

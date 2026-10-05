@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from threading import Event
 from typing import Literal
 
 import numpy as np
@@ -116,6 +117,7 @@ def infer_rasters(
     mask_path: Path,
     model: FloodModel,
     config: InferenceConfig | None = None,
+    cancel_event: Event | None = None,
 ) -> InferenceSummary:
     config = config or InferenceConfig()
     core_size = config.core_size
@@ -167,6 +169,12 @@ def infer_rasters(
         ):
             for row in range(0, pre_source.height, core_size):
                 for col in range(0, pre_source.width, core_size):
+                    if cancel_event is not None and cancel_event.is_set():
+                        raise ValleyeyeError(
+                            ErrorCode.JOB_CANCELLED,
+                            "SNUNet inference was cancelled.",
+                            stage="INFERENCE",
+                        )
                     pre, pre_valid = _read_context(
                         pre_source,
                         (1, 2),

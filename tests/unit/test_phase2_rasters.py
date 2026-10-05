@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from threading import Event
 
 import numpy as np
 import pytest
@@ -21,7 +22,7 @@ from valleyeye.sar.raster import (
     extract_snap_bands,
     write_slope_raster,
 )
-from valleyeye.sar.snap import build_snap_graph
+from valleyeye.sar.snap import build_snap_graph, run_snap_preprocessing
 
 
 class ConstantFloodModel:
@@ -168,6 +169,73 @@ def test_inference_rejects_misaligned_inputs(tmp_path: Path) -> None:
             ConstantFloodModel(),
         )
     assert error.value.code == ErrorCode.PREPROCESSING_FAILED
+
+
+def test_inference_observes_cancellation_between_tiles(tmp_path: Path) -> None:
+    pre = _write_raster(tmp_path / "pre.tif", np.ones((2, 32, 32), dtype=np.float32))
+    post = _write_raster(tmp_path / "post.tif", np.ones((2, 32, 32), dtype=np.float32))
+    slope = _write_raster(tmp_path / "slope.tif", np.ones((1, 32, 32), dtype=np.float32))
+    cancelled = Event()
+    cancelled.set()
+
+    with pytest.raises(ValleyeyeError) as error:
+        infer_rasters(
+            pre,
+            post,
+            slope,
+            tmp_path / "probability.tif",
+            tmp_path / "mask.tif",
+            ConstantFloodModel(),
+            cancel_event=cancelled,
+        )
+
+    assert error.value.code == ErrorCode.JOB_CANCELLED
+
+
+def test_snap_terminates_its_process_after_cancellation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from valleyeye.sar import snap
+
+    source = tmp_path / "source.zip"
+    executable = tmp_path / "gpt.exe"
+    source.touch()
+    executable.touch()
+    cancelled = Event()
+
+    class FakeProcess:
+        returncode: int | None = None
+        terminated = False
+
+        def poll(self) -> int | None:
+            cancelled.set()
+            return None
+
+        def terminate(self) -> None:
+            self.terminated = True
+
+        def wait(self, timeout: int | None = None) -> int:
+            self.returncode = -15
+            return -15
+
+        def kill(self) -> None:
+            self.returncode = -9
+
+    process = FakeProcess()
+    monkeypatch.setattr(snap.subprocess, "Popen", lambda *args, **kwargs: process)
+
+    with pytest.raises(ValleyeyeError) as error:
+        run_snap_preprocessing(
+            source,
+            tmp_path / "output.tif",
+            box(85.0, 27.0, 85.02, 27.02),
+            CRS.from_epsg(32645),
+            executable,
+            cancel_event=cancelled,
+        )
+
+    assert process.terminated
+    assert error.value.code == ErrorCode.JOB_CANCELLED
 
 
 def test_flood_polygons_have_stats_and_wgs84_geometry(tmp_path: Path) -> None:

@@ -1,0 +1,1029 @@
+{
+  "$defs": {
+    "AOISummary": {
+      "properties": {
+        "aoi_area_km2": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aoi Area Km2"
+        },
+        "aoi_bbox_wgs84": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Aoi Bbox Wgs84",
+          "type": "array"
+        },
+        "coordinate_reference_system": {
+          "default": "EPSG:4326",
+          "title": "Coordinate Reference System",
+          "type": "string"
+        }
+      },
+      "title": "AOISummary",
+      "type": "object"
+    },
+    "AffectedSettlementSummary": {
+      "properties": {
+        "settlement_id": {
+          "title": "Settlement Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "status": {
+          "enum": [
+            "DETOUR",
+            "CUT_OFF"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "before_distance_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Before Distance M"
+        },
+        "after_distance_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "After Distance M"
+        },
+        "before_time_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Before Time S"
+        },
+        "after_time_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "After Time S"
+        },
+        "detour_ratio": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detour Ratio"
+        },
+        "nearest_source_before": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nearest Source Before"
+        },
+        "nearest_source_after": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nearest Source After"
+        },
+        "blocking_road_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Blocking Road Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "settlement_id",
+        "status"
+      ],
+      "title": "AffectedSettlementSummary",
+      "type": "object"
+    },
+    "BuildingExposureSummary": {
+      "properties": {
+        "total_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Count"
+        },
+        "affected_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Affected Count"
+        },
+        "total_area_km2": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Area Km2"
+        },
+        "affected_area_km2": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Affected Area Km2"
+        },
+        "affected_fraction": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Affected Fraction"
+        }
+      },
+      "title": "BuildingExposureSummary",
+      "type": "object"
+    },
+    "ConnectivityAnalysis": {
+      "properties": {
+        "summary": {
+          "$ref": "#/$defs/ConnectivitySummaryDocument"
+        },
+        "settlement_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Settlement Count"
+        },
+        "layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Layer"
+        },
+        "most_affected_settlements": {
+          "items": {
+            "$ref": "#/$defs/AffectedSettlementSummary"
+          },
+          "title": "Most Affected Settlements",
+          "type": "array"
+        }
+      },
+      "title": "ConnectivityAnalysis",
+      "type": "object"
+    },
+    "ConnectivitySummaryDocument": {
+      "properties": {
+        "connected": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Connected"
+        },
+        "detour": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detour"
+        },
+        "cut_off": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cut Off"
+        },
+        "no_baseline_access": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "No Baseline Access"
+        }
+      },
+      "title": "ConnectivitySummaryDocument",
+      "type": "object"
+    },
+    "DiscoverySummary": {
+      "properties": {
+        "initial_window_days": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Initial Window Days"
+        },
+        "scene_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scene Count"
+        }
+      },
+      "title": "DiscoverySummary",
+      "type": "object"
+    },
+    "ExposureAnalysis": {
+      "properties": {
+        "building_summary": {
+          "$ref": "#/$defs/BuildingExposureSummary"
+        },
+        "bridge_affected_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bridge Affected Count"
+        },
+        "bridge_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bridge Count"
+        },
+        "road_summary": {
+          "$ref": "#/$defs/RoadExposureSummary"
+        },
+        "segment_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Segment Count"
+        },
+        "road_layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Road Layer"
+        },
+        "building_layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Building Layer"
+        },
+        "bridge_layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bridge Layer"
+        },
+        "coverage_available": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coverage Available"
+        }
+      },
+      "title": "ExposureAnalysis",
+      "type": "object"
+    },
+    "HazardAnalysis": {
+      "properties": {
+        "preprocessing": {
+          "$ref": "#/$defs/PreprocessingSummary"
+        },
+        "inference": {
+          "$ref": "#/$defs/InferenceSummaryDocument"
+        },
+        "hazard": {
+          "$ref": "#/$defs/HazardProductsSummary"
+        }
+      },
+      "title": "HazardAnalysis",
+      "type": "object"
+    },
+    "HazardProductsSummary": {
+      "properties": {
+        "flood_polygon_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Flood Polygon Count"
+        },
+        "debris_candidate_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Debris Candidate Count"
+        },
+        "flood_layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Flood Layer"
+        },
+        "debris_candidate_layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Debris Candidate Layer"
+        }
+      },
+      "title": "HazardProductsSummary",
+      "type": "object"
+    },
+    "InferenceSummaryDocument": {
+      "properties": {
+        "valid_pixel_fraction": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Pixel Fraction"
+        },
+        "valid_pixels": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Pixels"
+        },
+        "flooded_pixels": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Flooded Pixels"
+        },
+        "flooded_area_km2": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Flooded Area Km2"
+        },
+        "model_sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Sha256"
+        },
+        "model_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Name"
+        },
+        "model_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Version"
+        }
+      },
+      "title": "InferenceSummaryDocument",
+      "type": "object"
+    },
+    "InfrastructureAnalysis": {
+      "properties": {
+        "osm": {
+          "$ref": "#/$defs/OSMSummary"
+        },
+        "exposure": {
+          "$ref": "#/$defs/ExposureAnalysis"
+        }
+      },
+      "title": "InfrastructureAnalysis",
+      "type": "object"
+    },
+    "OSMSummary": {
+      "properties": {
+        "provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider"
+        },
+        "snapshot_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot At"
+        },
+        "feature_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feature Count"
+        },
+        "quality": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Quality",
+          "type": "object"
+        },
+        "layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Layer"
+        },
+        "provenance": {
+          "additionalProperties": true,
+          "title": "Provenance",
+          "type": "object"
+        }
+      },
+      "title": "OSMSummary",
+      "type": "object"
+    },
+    "PairingSummary": {
+      "properties": {
+        "pre": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SceneSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "post": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SceneSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "criteria": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Criteria",
+          "type": "object"
+        },
+        "alternatives": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "search_window_days": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Window Days"
+        }
+      },
+      "title": "PairingSummary",
+      "type": "object"
+    },
+    "PreprocessingSummary": {
+      "properties": {
+        "crs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Crs"
+        },
+        "processing_steps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Processing Steps",
+          "type": "array"
+        }
+      },
+      "title": "PreprocessingSummary",
+      "type": "object"
+    },
+    "RoadExposureSummary": {
+      "properties": {
+        "segment_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Segment Count"
+        },
+        "open_km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Open Km"
+        },
+        "potentially_blocked_km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Potentially Blocked Km"
+        },
+        "blocked_km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Blocked Km"
+        },
+        "unknown_coverage_km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unknown Coverage Km"
+        }
+      },
+      "title": "RoadExposureSummary",
+      "type": "object"
+    },
+    "SceneAnalysis": {
+      "properties": {
+        "discovery": {
+          "$ref": "#/$defs/DiscoverySummary"
+        },
+        "pairing": {
+          "$ref": "#/$defs/PairingSummary"
+        }
+      },
+      "title": "SceneAnalysis",
+      "type": "object"
+    },
+    "SceneSummary": {
+      "properties": {
+        "scene_id": {
+          "title": "Scene Id",
+          "type": "string"
+        },
+        "platform": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Platform"
+        },
+        "acquired_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Acquired At"
+        },
+        "product_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Product Type"
+        },
+        "instrument_mode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Instrument Mode"
+        },
+        "polarizations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Polarizations",
+          "type": "array"
+        },
+        "orbit_direction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Orbit Direction"
+        },
+        "relative_orbit": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relative Orbit"
+        },
+        "aoi_coverage_fraction": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aoi Coverage Fraction"
+        }
+      },
+      "required": [
+        "scene_id"
+      ],
+      "title": "SceneSummary",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "job_id": {
+      "title": "Job Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "SUCCEEDED",
+        "PARTIAL"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "aoi": {
+      "additionalProperties": true,
+      "title": "Aoi",
+      "type": "object"
+    },
+    "aoi_summary": {
+      "$ref": "#/$defs/AOISummary"
+    },
+    "event_date": {
+      "title": "Event Date",
+      "type": "string"
+    },
+    "scenes": {
+      "$ref": "#/$defs/SceneAnalysis"
+    },
+    "hazards": {
+      "$ref": "#/$defs/HazardAnalysis"
+    },
+    "infrastructure": {
+      "$ref": "#/$defs/InfrastructureAnalysis"
+    },
+    "connectivity": {
+      "$ref": "#/$defs/ConnectivityAnalysis"
+    },
+    "provenance": {
+      "additionalProperties": true,
+      "title": "Provenance",
+      "type": "object"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "job_id",
+    "status",
+    "aoi",
+    "event_date"
+  ],
+  "title": "AnalysisDocument",
+  "type": "object"
+}

@@ -35,3 +35,7 @@ The OSM request expands the AOI by 5 km in a local metric CRS so border settleme
 ## A9 — Exposure and network defaults
 
 Building overlap `0.10`, road potential/blocked overlap `0.01`/`0.50`, 20 m bridge corridor, 500 m snapping limit, 1.25 detour ratio, and highway-class speed defaults are transparent operational defaults. They are not calibrated against observed flood damage or travel-time data. The default post-event network is optimistic about `POTENTIALLY_BLOCKED` roads but removes `UNKNOWN_COVERAGE`; a strict policy can remove potential segments too. A lack of valid hazard coverage is never interpreted as an open road.
+
+## A10 — Job durability and worker topology
+
+Job requests, state, stage outputs and cache entries are filesystem-backed. The asynchronous scheduler is process-local, so a deployment sharing these directories must run only one API process. Restarted `QUEUED`/`RUNNING` jobs are marked failed rather than resumed; completed results remain readable. This is durable job history, not a distributed queue or transactional database.

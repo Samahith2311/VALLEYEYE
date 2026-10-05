@@ -1,5 +1,7 @@
 # Flood Rescue Mapping & Situation Intelligence System
 
+> Source note: this file records the user-supplied project requirements. No separate event-organizer rulebook or official data-policy document was provided, so this checklist is not represented as independently verified official hackathon policy.
+
 ## 1. Project Overview
 
 Build a web-based geospatial intelligence system that helps rescue teams understand the impact of a flood using satellite imagery, open geographic data, road-network analysis, and an AI component.

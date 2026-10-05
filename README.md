@@ -25,7 +25,28 @@ python -m valleyeye.ml.fetch_weights
 make run
 ```
 
-The API currently provides `GET /health` and `GET /ready`. Interactive OpenAPI documentation is served at `/docs`.
+The API provides `GET /health`, `GET /ready`, and asynchronous analysis jobs. Interactive OpenAPI
+documentation is served at `/docs`.
+
+Submit an AOI as a WGS84 GeoJSON geometry and an event date:
+
+```powershell
+Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/v1/jobs `
+  -ContentType 'application/json' `
+  -Body '{"aoi_geojson":{"type":"Polygon","coordinates":[[[85,27],[85.02,27],[85.02,27.02],[85,27.02],[85,27]]]},"event_date":"2026-08-15"}'
+```
+
+The response is `202 Accepted` with a `job_id` and status URL. Poll `GET /api/v1/jobs/{job_id}`
+for stage progress, timings, cache state and structured errors. Successful and partial jobs expose
+`/summary`, `/layers`, `/report`, and `/provenance` beneath that URL; results are unavailable until
+processing completes. `POST /api/v1/jobs/{job_id}/cancel` requests cancellation. Add `?no_cache=true`
+to a submission to bypass every stage cache. Jobs and outputs are persisted under `data/jobs/` and
+stage cache entries under `data/cache/` by default. The typed output contract is published as
+[`docs/analysis.schema.json`](docs/analysis.schema.json).
+
+The worker is an in-process queue with configurable concurrency and queue limits. Run one API
+process per storage root: this phase does not provide cross-process coordination or resume
+interrupted computation. On restart, unfinished jobs are marked failed with a structured error.
 
 ## Sentinel-1 and flood inference
 
@@ -96,9 +117,19 @@ Tests use mocked HTTP and block socket connections so they do not access live se
 | `VALLEYEYE_NETWORK_DETOUR_RATIO_THRESHOLD` | Distance or travel-time ratio that marks a detour | `1.25` |
 | `VALLEYEYE_REMOVE_POTENTIALLY_BLOCKED_EDGES` | Use strict rather than optimistic connectivity policy | `false` |
 | `VALLEYEYE_ROAD_SPEED_DEFAULTS_KMH` | JSON highway-class speeds used when OSM maxspeed is absent | configured defaults |
+| `VALLEYEYE_JOB_DATA_DIR` | Persistent job requests, status and artifacts | `data/jobs` |
+| `VALLEYEYE_STAGE_CACHE_DIR` | Content-addressed stage cache | `data/cache` |
+| `VALLEYEYE_MAX_CONCURRENT_JOBS` | Number of jobs run at once by this process | `2` |
+| `VALLEYEYE_MAX_QUEUED_JOBS` | Maximum running plus queued jobs accepted | `50` |
+| `VALLEYEYE_STAGE_CACHE_TTL_SECONDS` | Cache lifetime; `0` disables cache reads and writes | `86400` |
 
 CDSE credentials are only used by the server-side token client and are never included in responses or logs. See [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) for sources and verification dates.
 
 ## Architecture
 
-`src/valleyeye/api` contains the FastAPI boundary, `core` holds shared settings, geometry checks and errors, `cdse` handles authentication, STAC discovery and scene pairing, `sar` provides SNAP/raster tools, `ml` verifies and runs SNUNet, `hazard` exports flood and debris-candidate vectors, `osm` extracts historical OSM, `infra` measures exposure, and `network` analyzes road access. Job orchestration and reporting remain later phases. The phase checkpoints and limitations are recorded under `docs/`.
+`src/valleyeye/api` contains the FastAPI boundary, `pipeline` persists and runs the fixed stages,
+`core` holds shared settings, geometry checks and errors, `cdse` handles authentication, STAC
+discovery and scene pairing, `sar` provides SNAP/raster tools, `ml` verifies and runs SNUNet,
+`hazard` exports flood and debris-candidate vectors, `osm` extracts historical OSM, `infra` measures
+exposure, and `network` analyzes road access. The report is rendered only from the validated
+`analysis.json` document. Phase checkpoints, assumptions and limitations are recorded under `docs/`.
