@@ -39,3 +39,11 @@ Building overlap `0.10`, road potential/blocked overlap `0.01`/`0.50`, 20 m brid
 ## A10 — Job durability and worker topology
 
 Job requests, state, stage outputs and cache entries are filesystem-backed. The asynchronous scheduler is process-local, so a deployment sharing these directories must run only one API process. Restarted `QUEUED`/`RUNNING` jobs are marked failed rather than resumed; completed results remain readable. This is durable job history, not a distributed queue or transactional database.
+
+## A11 — Reference evaluation is user-supplied and local
+
+The evaluation module accepts an explicit local raster or GeoJSON reference only after a completed production run has been hash-verified, copied to a separate evaluation directory, and made read-only. No EMSR927 product, URL, or expected metric is bundled or inferred. If the reference uses another CRS it must declare it; absent GeoJSON CRS is interpreted as EPSG:4326. The comparison is limited to valid pixels on the production grid.
+
+## A12 — Synthetic benchmark scope
+
+The benchmark uses generated geometries and a fixed projected CRS only to compare software paths at a specified feature count. It is not representative field performance, native peak memory, a wall-clock service guarantee, or evidence of flood-detection accuracy. Its one-run timings are for relative profiling on the recorded host.

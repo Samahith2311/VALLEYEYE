@@ -149,6 +149,8 @@ def build_analysis(
                     "provider",
                     "snapshot_at",
                     "feature_count",
+                    "attribution",
+                    "license",
                     "quality",
                     "layer",
                     "provenance",
@@ -272,6 +274,8 @@ td{{font-variant-numeric:tabular-nums}}th{{font-weight:500;width:72%}}
 <p class="meta">Model: {html.escape(str(model_name))}</p>
 <p class="meta">Historical OSM snapshot:
 {html.escape(str(osm.get("snapshot_at", "Not available")))}</p>
+<p class="meta">OSM attribution: {html.escape(str(osm.get("attribution", "Not available")))},
+{html.escape(str(osm.get("license", "licence unavailable")))}</p>
 <h2>Potential access impacts</h2>
 <table><thead><tr><th>Settlement</th><th>Status</th><th>Before time (s)</th>
 <th>After time (s)</th></tr></thead><tbody>{affected_rows}</tbody></table>

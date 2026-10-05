@@ -4,6 +4,7 @@ from datetime import date
 from io import BytesIO
 
 import httpx
+import networkx as nx
 import pyarrow as pa
 import pyarrow.parquet as parquet
 import pytest
@@ -16,7 +17,11 @@ from valleyeye.core.errors import ErrorCode, ValleyeyeError
 from valleyeye.core.settings import Settings
 from valleyeye.infra.exposure import assess_bridge_exposure, assess_building_exposure
 from valleyeye.infra.roads import RoadSegment, split_and_classify_roads
-from valleyeye.network.connectivity import analyze_connectivity, build_road_graph
+from valleyeye.network.connectivity import (
+    analyze_connectivity,
+    build_road_graph,
+    derive_after_graph,
+)
 from valleyeye.osm.models import OSMFeature
 from valleyeye.osm.ohsome import (
     OhSomeOSMProvider,
@@ -263,6 +268,26 @@ def test_graph_respects_oneway_and_optimistic_potential_policy() -> None:
     )
     assert optimistic.number_of_edges() == 2
     assert strict.number_of_edges() == 0
+
+
+def test_derived_after_graph_matches_rebuild_and_drops_isolated_nodes() -> None:
+    open_road = _segment("way/open", LineString([(0, 0), (10, 0)]))
+    blocked_road = _segment("way/blocked", LineString([(10, 0), (20, 0)]), "BLOCKED")
+    potential_road = _segment(
+        "way/potential", LineString([(20, 0), (30, 0)]), "POTENTIALLY_BLOCKED"
+    )
+    segments = (open_road, blocked_road, potential_road)
+    before = build_road_graph(segments, {"residential": 30})
+
+    for remove_potential in (False, True):
+        rebuilt = build_road_graph(
+            segments,
+            {"residential": 30},
+            after_event=True,
+            remove_potentially_blocked=remove_potential,
+        )
+        derived = derive_after_graph(before, remove_potential)
+        assert nx.utils.graphs_equal(derived, rebuilt)
 
 
 def test_settlement_snaps_to_nearest_road_edge_not_only_an_endpoint() -> None:

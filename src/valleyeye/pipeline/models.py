@@ -144,6 +144,8 @@ class OSMSummary(BaseModel):
     provider: str | None = None
     snapshot_at: datetime | None = None
     feature_count: int | None = None
+    attribution: str | None = None
+    license: str | None = None
     quality: dict[str, int] = Field(default_factory=dict)
     layer: str | None = None
     provenance: dict[str, Any] = Field(default_factory=dict)

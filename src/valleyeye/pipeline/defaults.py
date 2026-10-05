@@ -330,6 +330,8 @@ def _osm_geojson(dataset: OSMDataset) -> list[dict[str, Any]]:
                 "category": feature.category,
                 "tags": feature.tags,
                 "snapshot_date": feature.snapshot_date.isoformat(),
+                "source_attribution": "© OpenStreetMap contributors",
+                "source_license": "ODbL 1.0",
             },
         }
         for feature in dataset.features
@@ -350,11 +352,15 @@ async def _osm(context: StageContext) -> StageOutcome:
             "query_sha256": dataset.query_sha256,
             "response_sha256": dataset.response_sha256,
             "feature_count": len(dataset.features),
+            "attribution": "© OpenStreetMap contributors",
+            "license": "ODbL 1.0",
             "quality": dataset.quality.__dict__,
             "layer": _relative(context, layer),
             "provenance": {
                 "provider": dataset.provider,
                 "snapshot_at": dataset.snapshot_at.isoformat(),
+                "attribution": "© OpenStreetMap contributors",
+                "license": "ODbL 1.0",
                 "query_sha256": dataset.query_sha256,
                 "response_sha256": dataset.response_sha256,
             },

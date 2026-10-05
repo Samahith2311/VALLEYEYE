@@ -56,6 +56,17 @@ The model expects aligned pre/post rasters with VV/VH sigma0 in linear units plu
 
 Historical OSM extraction uses the documented ohsome API v2 and requires a HeiGIT API key in `OHSOME_API_KEY`. Requests select the final UTC second before the event date; there is no current-OSM fallback. See `docs/ROAD_IMPACT_RULES.md` for exposure and connectivity policy.
 
+## Isolated evaluation
+
+Evaluation accepts only a completed production job and a user-provided local raster or GeoJSON reference. Freeze the job first; the tool verifies the production manifest hashes, copies registered artifacts outside the production jobs directory, and marks those copies read-only. Only then run the comparison. Use a dedicated evaluation directory outside production jobs, config, and cache paths:
+
+```powershell
+uv run python -m evaluation.cli freeze data/jobs/<job-id> ..\valleyeye-evaluation\frozen\<job-id>
+uv run python -m evaluation.cli compare ..\valleyeye-evaluation\frozen\<job-id> C:\path\to\reference.geojson ..\valleyeye-evaluation\metrics.json
+```
+
+No reference dataset is bundled or downloaded. The comparison reports flood-mask IoU, precision, recall, F1, pixel counts, and area on the production grid. Do not use evaluation results to tune production thresholds or model weights. See [`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md) for current evaluation status.
+
 ## Test and lint
 
 ```powershell

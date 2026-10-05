@@ -102,6 +102,23 @@ def build_road_graph(
     return graph
 
 
+def derive_after_graph(
+    before_graph: nx.MultiDiGraph,
+    remove_potentially_blocked: bool = False,
+) -> nx.MultiDiGraph:
+    """Derive the post-event network by filtering the already-built baseline graph."""
+    after_graph = before_graph.copy()
+    removed_edges = [
+        (start, end, key)
+        for start, end, key, attributes in after_graph.edges(keys=True, data=True)
+        if attributes.get("status") in {"BLOCKED", "UNKNOWN_COVERAGE"}
+        or (remove_potentially_blocked and attributes.get("status") == "POTENTIALLY_BLOCKED")
+    ]
+    after_graph.remove_edges_from(removed_edges)
+    after_graph.remove_nodes_from(list(nx.isolates(after_graph)))
+    return after_graph
+
+
 def _project_points(features: tuple[OSMFeature, ...], metric_crs: CRS) -> tuple[Point, ...]:
     transformer = Transformer.from_crs("EPSG:4326", metric_crs, always_xy=True)
     geometries = shapely.transform(
@@ -283,12 +300,7 @@ def analyze_connectivity(
     if maximum_snap_distance_m <= 0 or detour_ratio_threshold < 1:
         raise ValueError("Connectivity snap distance and detour threshold are invalid")
     before_graph = build_road_graph(segments, speed_defaults_kmh)
-    after_graph = build_road_graph(
-        segments,
-        speed_defaults_kmh,
-        after_event=True,
-        remove_potentially_blocked=remove_potentially_blocked,
-    )
+    after_graph = derive_after_graph(before_graph, remove_potentially_blocked)
     locations = (*settlements, *sources)
     projected_locations = _project_points(locations, metric_crs) if locations else ()
     snapped_locations, location_snap_distances = _snap_points(

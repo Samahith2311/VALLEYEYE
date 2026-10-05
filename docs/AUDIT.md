@@ -1,0 +1,24 @@
+# Phase 5 Backend Audit
+
+Audit date: 2026-10-05. Scope is the repository and the user-supplied checklist in `HACKATHON_REQUIREMENTS.md`; the official organizer rulebook was not separately provided. “Pass” therefore describes implementation evidence, not official-policy certification or live-service validation.
+
+| Severity | Audit item | Evidence | Status | Finding / disposition |
+|---|---|---|---|---|
+| High | Allowed data only | `docs/DATA_SOURCES.md`; network clients in `src/valleyeye/cdse`, `osm/ohsome.py`, `pipeline/defaults.py`; network-blocking fixture in `tests/conftest.py` | Pass | Known runtime sources are registered. Live CDSE, ohsome, SNAP auxiliary-data execution was not run. |
+| High | No post-event OSM | `osm/ohsome.py::pre_event_snapshot`, `assert_pre_event_snapshot`; `test_osm_provider_requires_key_and_never_allows_same_day_snapshot` | Pass | Request timestamp is the last UTC second before the event date; no current-data fallback. |
+| High | EMSR927 isolation | `tests/unit/test_policy_guards.py`; isolated `evaluation/` package | Pass | Production-source grep and AST import guard pass; evaluator imports no `valleyeye` modules or settings. No reference data was found or loaded. |
+| High | Sentinel-1 pairing | `cdse/pairing.py::_rejection_reasons`; `tests/unit/test_pairing.py` | Pass | Requires matching mode, polarization, orbit direction, relative orbit, product type and sufficient AOI coverage; uses adaptive event-relative windows. |
+| Medium | CRS and raster alignment | `sar/raster.py::assert_aligned`, `align_raster`; `ml/inference.py::infer_rasters`; raster unit tests | Pass | Inference rejects misaligned rasters and requires projected metric grids. Real SNAP outputs remain unverified. |
+| High | AI inference validity | `ml/snunet.py`, `ml/inference.py`; `docs/MODEL_CARD.md`; `tests/unit/test_model_contract.py` | Open | Checkpoint file hash and architecture load were verified, but channel semantics are source-inferred and no held-out labeled flood scene was available. Accuracy is unestablished. |
+| Medium | Infrastructure exposure | `infra/exposure.py::assess_building_exposure`, `infra/roads.py::split_and_classify_roads`; `tests/unit/test_phase3_gis.py` | Pass | Spatial-indexed exposure and road coverage classes pass synthetic tests. Impact thresholds are operational defaults, not field-calibrated. |
+| Medium | Road connectivity | `network/connectivity.py::analyze_connectivity`, `derive_after_graph`; detour/cut-off tests in `test_phase3_gis.py` | Fixed | Post-event graph now derives from the baseline graph. Equivalence against the prior rebuild algorithm is tested; isolated nodes are removed to prevent false reachability. |
+| Medium | Cut-off classification | `network/connectivity.py`; `test_phase3_gis.py` | Pass | Network distance/time drives classification; tests cover detours, cut-offs, one-way roads, edge snapping and no-baseline-access. |
+| Medium | Report numbers | `pipeline/results.py::render_report`; `test_default_pipeline.py` | Pass | Report values come from `analysis.json`; E2E checks numeric consistency and candidate-not-confirmed language. |
+| Medium | Provenance and attribution | `pipeline/results.py::write_results`, `pipeline/defaults.py::_osm`; manifest/hash E2E tests | Fixed | Artifact, input, model, scene, OSM query/response hashes are persisted. OSM attribution and ODbL 1.0 now appear in the layer, analysis, manifest and report. |
+| High | Hardcoded case-study logic | `test_policy_guards.py`; second, synthetic AOIs in geometry/pipeline tests | Pass | Production source has no `EMSR927`, `Trishuli`, `Rasuwa`, or `2026-08` strings. Request AOI and event date drive processing. |
+| Medium | Missing-data behavior | `core/errors.py`, `pipeline/runner.py`, API error tests | Pass | Required missing inputs become structured failures; there is no fallback to current OSM or unverified model weights. |
+| High | Secrets | `core/logging.py`; `test_logging_and_settings.py`; `test_jobs_api.py`; `.gitignore` | Pass | Credentials use secret settings, log redaction is tested, API/provenance tests assert known fake secrets are absent, `.env` is ignored and not tracked. Pattern scan found no committed credential-shaped values. |
+| Low | No frontend / debris claim level | `README.md`, `hazard/products.py`, report tests | Pass | Backend-only scope; debris output is explicitly candidate-level and uncalibrated. |
+| Medium | Official rules and live integration | `docs/HACKATHON_REQUIREMENTS.md`, `docs/DATA_SOURCES.md` | Open | The supplied checklist is not an independently verified official rulebook. No live production job or external API request was performed. |
+
+Critical findings: none. High implementation defects found during this audit (graph rebuild and missing OSM attribution in deliverables) were fixed. Open High-severity model validation is data-blocked: do not claim operational flood accuracy until evaluated on an allowed, labeled held-out scene.

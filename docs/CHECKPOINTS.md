@@ -56,3 +56,19 @@ Assumptions: [A10](ASSUMPTIONS.md#a10--job-durability-and-worker-topology).
 Known gaps:
 - The job queue is process-local; use one API worker per storage root. Restarted jobs are marked failed, not resumed. OSM and other synchronous geospatial worker-thread functions are not forcibly interrupted after cancellation; SNAP subprocess and SNUNet tile processing are cooperative.
 - Real-data accuracy, live service availability/quotas, operational resource limits and the user-supplied EMSR927 evaluation remain unverified.
+
+## Phase 5 — Final senior review, evaluation and optimization — 2026-10-05
+Built:
+- Added `docs/AUDIT.md`, `docs/BENCHMARKS.md`, and `docs/RELEASE_READINESS.md` with explicit evidence, open risks, requirements traceability, and non-fabricated evaluation status.
+- Added isolated `evaluation/` freeze/compare commands. Production artifacts are hash-verified, copied outside the jobs root, marked read-only, and re-verified before local raster/GeoJSON comparison. Tests confirm production job/config/cache bytes are not modified.
+- Added CI-style production-source case-study and import guards, plus a reverse import guard ensuring evaluation never imports production/configuration modules.
+- Reused the baseline road graph to derive the post-event graph; equivalence tests cover strict and optimistic policy. The synthetic benchmark measured 1.4148 s for rebuilding both graphs versus 1.0301 s for graph reuse on 5,000 roads and 25,000 buildings, with structurally equal output.
+- Added OSM attribution and ODbL 1.0 to the GeoJSON layer, analysis, provenance manifest, and report.
+
+Tests: `uv run pytest -q --cov=valleyeye --cov-report=term-missing` (72 passed / 0 failed / 0 skipped; 88% coverage). `uv run pytest -q -m e2e` (6 passed / 66 deselected). `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy src/valleyeye evaluation scripts/benchmark_synthetic.py` (45 files), and `uv lock --check` all passed. Secret-pattern scan had no matches; repository source-policy and import guards pass in the full suite. The full suite emitted 40 upstream Starlette/AnyIO and Rasterio deprecation warnings.
+Not verified: no user-provided EMSR927/held-out reference file was present, so no flood accuracy metrics were run. No live CDSE/ohsome calls, SNAP product execution, or production job was attempted. Benchmark timings are one synthetic run and Python allocation only; see `docs/BENCHMARKS.md`.
+Assumptions: [A11](ASSUMPTIONS.md#a11--reference-evaluation-is-user-supplied-and-local), [A12](ASSUMPTIONS.md#a12--synthetic-benchmark-scope), plus [A4](ASSUMPTIONS.md#a4--kuro-siwo-checkpoint-input-interpretation) and [A10](ASSUMPTIONS.md#a10--job-durability-and-worker-topology).
+Known gaps:
+- Flood-detection accuracy and the checkpoint's input semantics require allowed held-out scene validation; production was not tuned with EMSR927.
+- A separate official organizer rulebook was not provided. Dashboard-versus-backend scope remains an open requirement conflict.
+- Live CDSE, SNAP/SRTM, and ohsome operation still requires local software, credentials and external-service verification.

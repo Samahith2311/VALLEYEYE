@@ -234,6 +234,8 @@ def test_default_pipeline_with_mocked_services_and_synthetic_products(
         summary = client.get(f"/api/v1/jobs/{job_id}/summary").json()
         assert summary["hazards"]["inference"]["flooded_area_km2"] > 0
         assert summary["infrastructure"]["osm"]["feature_count"] == 5
+        assert summary["infrastructure"]["osm"]["attribution"] == "© OpenStreetMap contributors"
+        assert summary["infrastructure"]["osm"]["license"] == "ODbL 1.0"
         assert summary["infrastructure"]["exposure"]["bridge_count"] == 1
         layer_catalog = client.get(f"/api/v1/jobs/{job_id}/layers").json()["layers"]
         assert any(layer["path"].endswith("flood.geojson") for layer in layer_catalog)
@@ -241,6 +243,7 @@ def test_default_pipeline_with_mocked_services_and_synthetic_products(
         report = client.get(f"/api/v1/jobs/{job_id}/report")
         assert report.status_code == 200
         assert "North Camp" in report.text
+        assert "© OpenStreetMap contributors" in report.text
         manifest = client.get(f"/api/v1/jobs/{job_id}/provenance").json()
         assert manifest["selected_scenes"] == {"pre": "S1A_PRE", "post": "S1A_POST"}
         assert len(manifest["inputs"]["files"]) == 2
