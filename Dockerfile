@@ -2,7 +2,7 @@ FROM python:3.13-slim AS build
 WORKDIR /build
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip wheel --no-cache-dir --wheel-dir /wheels .
+RUN pip wheel --extra-index-url https://download.pytorch.org/whl/cpu --no-cache-dir --wheel-dir /wheels .[ml]
 
 FROM python:3.13-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1

@@ -9,6 +9,8 @@ description = "A traceable flood impact analysis backend"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
+  "numpy==2.2.6",
+  "rasterio==1.4.3",
   "fastapi==0.116.1",
   "httpx==0.28.1",
   "pydantic==2.11.7",
@@ -27,6 +29,18 @@ dev = [
   "pytest-cov==6.2.1",
   "ruff==0.12.9",
 ]
+ml = ["torch==2.7.1"]
+
+[project.scripts]
+valleyeye-fetch-weights = "valleyeye.ml.fetch_weights:main"
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/valleyeye"]
@@ -52,5 +66,5 @@ plugins = ["pydantic.mypy"]
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["pystac_client.*", "shapely.*"]
+module = ["pystac_client.*", "rasterio", "rasterio.*", "shapely.*"]
 ignore_missing_imports = true

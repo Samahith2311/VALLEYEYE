@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from urllib.parse import urlparse
 
 from pydantic import AliasChoices, Field, SecretStr, model_validator
@@ -48,6 +49,17 @@ class Settings(BaseSettings):
     pair_weight_post_closeness: float = 0.25
     pair_weight_same_platform: float = 0.10
     pair_weight_coverage: float = 0.15
+    model_weights_path: Path = Path("weights/kuro-siwo-snunet.pt")
+    inference_device: str = "auto"
+    flood_probability_threshold: float = 0.5
+    inference_tile_size: int = 224
+    inference_overlap: int = 32
+    snap_gpt_path: Path | None = None
+    snap_pixel_spacing_m: float = 10.0
+    snap_aoi_buffer_m: float = 500.0
+    minimum_flood_polygon_area_km2: float = 0.001
+    candidate_backscatter_change_threshold_db: float = 3.0
+    minimum_candidate_polygon_area_km2: float = 0.001
 
     @model_validator(mode="after")
     def validate_settings(self) -> Settings:
@@ -78,6 +90,22 @@ class Settings(BaseSettings):
         )
         if any(weight < 0 for weight in weights) or abs(sum(weights) - 1.0) > 1e-9:
             raise ValueError("Pair score weights must be non-negative and sum to one")
+        if not 0 < self.flood_probability_threshold <= 1:
+            raise ValueError("Flood probability threshold must be in (0, 1]")
+        if self.inference_tile_size < 32 or self.inference_tile_size % 16:
+            raise ValueError("Inference tile size must be at least 32 and divisible by 16")
+        if self.inference_overlap < 0 or self.inference_overlap * 2 >= self.inference_tile_size:
+            raise ValueError(
+                "Inference overlap must be non-negative and less than half the tile size"
+            )
+        if self.snap_pixel_spacing_m <= 0:
+            raise ValueError("SNAP pixel spacing must be positive")
+        if self.snap_aoi_buffer_m < 0:
+            raise ValueError("SNAP AOI buffer must be non-negative")
+        if self.minimum_flood_polygon_area_km2 < 0 or self.minimum_candidate_polygon_area_km2 < 0:
+            raise ValueError("Minimum polygon areas must be non-negative")
+        if self.candidate_backscatter_change_threshold_db <= 0:
+            raise ValueError("Candidate backscatter-change threshold must be positive")
         return self
 
     def public_config(self) -> dict[str, object]:

@@ -1,4 +1,4 @@
-.PHONY: test lint run e2e
+.PHONY: test lint run e2e fetch-weights
 
 test:
 	python -m pytest
@@ -12,3 +12,6 @@ run:
 
 e2e:
 	python -m pytest -m e2e
+
+fetch-weights:
+	python -m valleyeye.ml.fetch_weights
